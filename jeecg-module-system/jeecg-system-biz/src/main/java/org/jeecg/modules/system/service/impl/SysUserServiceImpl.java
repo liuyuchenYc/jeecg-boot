@@ -173,9 +173,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		log.info("当前登录账号为:{}",uName);
 		SysUser sysUser = userMapper.getUserByName(uName);
 		String currentUserId = sysUser.getId();
-		List<String> cids = new ArrayList<>();
-		cids.add(currentUserId);
-		List<SysRole> cRoleList = sysRoleMapper.getRoleNameByUserId(cids);
+		List<SysRole> cRoleList = sysRoleMapper.getRoleNameByUserId(currentUserId);
 		log.info("cRoleList 数据返回{}",JSONObject.toJSONString(cRoleList));
 		SysRole sysRole = cRoleList.get(0);
 		if(!sysRole.getRoleName().equals("管理员")){
@@ -187,7 +185,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		Page<SysUser> page = new Page<SysUser>(pageNo, pageSize);
 		IPage<SysUser> pageList = this.page(page, queryWrapper);
 		List<String> uIds = pageList.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
-		List<SysRole> roleList = sysRoleMapper.getRoleNameByUserId(uIds);
+		List<SysRole> roleList = sysRoleMapper.getRoleNameByUserIds(uIds);
 		Map<String,String> map = roleList.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName()));
 		pageList.getRecords().stream().forEach(item->{
 			if(map.containsKey(item.getId())){

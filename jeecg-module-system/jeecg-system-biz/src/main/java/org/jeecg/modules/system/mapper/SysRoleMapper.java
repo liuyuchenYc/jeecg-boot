@@ -69,8 +69,10 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     @Select("select user_id from sys_user_role where role_id = #{roleId} ")
     List<String> getListIdsByRoleIds(@Param("roleId") String roleId);
 
-    @Select("select t2.*,t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where t1.user_id in ( #{userIds}) ")
-    List<SysRole> getRoleNameByUserId(@Param("userIds")List<String> userIds);
+    @Select("select t2.*,t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where t1.user_id in (#{userIds}) ")
+    List<SysRole> getRoleNameByUserIds(@Param("userIds")List<String> userIds);
+    @Select("select t2.*,t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where t1.user_id = #{userId} ")
+    List<SysRole> getRoleNameByUserId(@Param("userId")String userId);
 
     @Select("select t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where  t2.role_name = '管理员'")
     List<String> getAllAdminUIds();
