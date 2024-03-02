@@ -124,6 +124,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
 	@Override
 	public Result<IPage<SysUser>> queryPageList(HttpServletRequest req, QueryWrapper<SysUser> queryWrapper, Integer pageSize, Integer pageNo) {
+		log.info("querypage req{}",JSONObject.toJSONString(queryWrapper));
 		Result<IPage<SysUser>> result = new Result<IPage<SysUser>>();
 		//update-begin-Author:wangshuai--Date:20211119--for:【vue3】通过部门id查询用户，通过code查询id
 		//部门ID
@@ -159,14 +160,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		//TODO 外部模拟登陆临时账号，列表不显示
 		queryWrapper.ne("username", "_reserve_user_external");
 //		queryWrapper.eq("account_status", queryWrapper.getEntity().getAccountStatus());
-		if (!StringUtils.isEmpty(queryWrapper.getEntity().getRoleId())) {
-			List<String>  uids = sysRoleMapper.getListIdsByRoleIds( queryWrapper.getEntity().getRoleId());
+		if (!StringUtils.isEmpty(req.getParameter("roleId"))) {
+			List<String>  uids = sysRoleMapper.getListIdsByRoleIds( req.getParameter("roleId"));
 			queryWrapper.in("id", uids);
 		}
-
-		if (!StringUtils.isEmpty(queryWrapper.getEntity().getUsername())) {
-			queryWrapper.eq("username", queryWrapper.getEntity().getUsername());
-		}
+//
+//		if (!StringUtils.isEmpty(req.getParameter("username"))) {
+//			queryWrapper.like("username", req.getParameter("username"));
+//		}
 
 		Page<SysUser> page = new Page<SysUser>(pageNo, pageSize);
 		IPage<SysUser> pageList = this.page(page, queryWrapper);
