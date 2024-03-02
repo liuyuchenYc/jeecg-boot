@@ -6,9 +6,7 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.jeecg.modules.system.entity.SysRole;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-
 import java.util.List;
 
 /**
@@ -69,8 +67,19 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     @Select("select user_id from sys_user_role where role_id = #{roleId} ")
     List<String> getListIdsByRoleIds(@Param("roleId") String roleId);
 
-    @Select("select t2.*,t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where t1.user_id in (#{userIds}) ")
+    @Select({
+            "<script>",
+            "select",
+            "t1.user_id," + "t2.* ",
+            "from sys_user_role t1 left join  sys_role t2 on  t1.role_id = t2.id ",
+            "where t1.user_id in",
+            "<foreach collection='userIds' item='userIds' open='(' separator=',' close=')'>",
+            "#{userIds}",
+            "</foreach>",
+            "</script>"
+    })
     List<SysRole> getRoleNameByUserIds(@Param("userIds")List<String> userIds);
+
     @Select("select t2.*,t1.user_id as userId from sys_user_role  t1 left join sys_role t2 on t1.role_id = t2.id  where t1.user_id = #{userId} ")
     List<SysRole> getRoleNameByUserId(@Param("userId")String userId);
 

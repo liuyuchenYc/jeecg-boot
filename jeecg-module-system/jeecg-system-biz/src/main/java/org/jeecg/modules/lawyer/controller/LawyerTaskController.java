@@ -1,41 +1,40 @@
-package org.jeecg.modules.task.controller;
-
-import java.util.Arrays;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.jeecg.common.api.vo.Result;
-import org.jeecg.common.system.query.QueryGenerator;
-import org.jeecg.modules.task.entity.LawyerTask;
-import org.jeecg.modules.task.service.ILawyerTaskService;
+package org.jeecg.modules.lawyer.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.common.system.base.controller.JeecgController;
+import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.modules.lawyer.entity.LawyerTask;
+import org.jeecg.modules.lawyer.service.ILawyerTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.jeecg.common.aspect.annotation.AutoLog;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
  /**
  * @Description: lawyer_task
  * @Author: jeecg-boot
- * @Date:   2024-02-27
+ * @Date:   2024-03-02
  * @Version: V1.0
  */
 @Api(tags="lawyer_task")
 @RestController
-@RequestMapping("/task/lawyerTask")
+@RequestMapping("/lawyer/lawyerTask")
 @Slf4j
 public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTaskService> {
 	@Autowired
 	private ILawyerTaskService lawyerTaskService;
-	
+
 	/**
 	 * 分页列表查询
 	 *
@@ -57,7 +56,7 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
 		IPage<LawyerTask> pageList = lawyerTaskService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
-	
+
 	/**
 	 *   添加
 	 *
@@ -65,13 +64,12 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
 	 * @return
 	 */
 	@AutoLog(value = "lawyer_task-添加")
-	@ApiOperation(value="lawyer_task-添加", notes="lawyer_task-添加")
 	@PostMapping(value = "/add")
 	public Result<String> add(@RequestBody LawyerTask lawyerTask) {
 		lawyerTaskService.save(lawyerTask);
 		return Result.OK("添加成功！");
 	}
-	
+
 	/**
 	 *  编辑
 	 *
@@ -85,7 +83,7 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
 		lawyerTaskService.updateById(lawyerTask);
 		return Result.OK("编辑成功!");
 	}
-	
+
 	/**
 	 *   通过id删除
 	 *
@@ -94,13 +92,12 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
 	 */
 	@AutoLog(value = "lawyer_task-通过id删除")
 	@ApiOperation(value="lawyer_task-通过id删除", notes="lawyer_task-通过id删除")
-	//@RequiresPermissions("task:lawyer_task:delete")
 	@DeleteMapping(value = "/delete")
 	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
 		lawyerTaskService.removeById(id);
 		return Result.OK("删除成功!");
 	}
-	
+
 	/**
 	 *  批量删除
 	 *
@@ -109,13 +106,12 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
 	 */
 	@AutoLog(value = "lawyer_task-批量删除")
 	@ApiOperation(value="lawyer_task-批量删除", notes="lawyer_task-批量删除")
-	@RequiresPermissions("task:lawyer_task:deleteBatch")
 	@DeleteMapping(value = "/deleteBatch")
 	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
 		this.lawyerTaskService.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功!");
 	}
-	
+
 	/**
 	 * 通过id查询
 	 *
@@ -139,7 +135,6 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
     * @param request
     * @param lawyerTask
     */
-    @RequiresPermissions("task:lawyer_task:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, LawyerTask lawyerTask) {
         return super.exportXls(request, lawyerTask, LawyerTask.class, "lawyer_task");
@@ -152,7 +147,6 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
     * @param response
     * @return
     */
-    @RequiresPermissions("task:lawyer_task:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
         return super.importExcel(request, response, LawyerTask.class);

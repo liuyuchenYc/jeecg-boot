@@ -185,8 +185,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		Page<SysUser> page = new Page<SysUser>(pageNo, pageSize);
 		IPage<SysUser> pageList = this.page(page, queryWrapper);
 		List<String> uIds = pageList.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
-		List<SysRole> roleList = sysRoleMapper.getRoleNameByUserIds(uIds);
-		Map<String,String> map = roleList.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName()));
+		LambdaQueryWrapper<SysRole> roleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+		roleLambdaQueryWrapper.in(SysRole::getUserId,uIds);
+		List<SysRole> roleListB = sysRoleMapper.getRoleNameByUserIds(uIds);
+//		List<SysRole> roleList = sysRoleMapper.selectList(roleLambdaQueryWrapper);
+		Map<String,String> map = roleListB.stream().collect(Collectors.toMap(SysRole::getId,p->p.getRoleName()));
 		pageList.getRecords().stream().forEach(item->{
 			if(map.containsKey(item.getId())){
 				item.setRoleName(map.get(item.getId()));
