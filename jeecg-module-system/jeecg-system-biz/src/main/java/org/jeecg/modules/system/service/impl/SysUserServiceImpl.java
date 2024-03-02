@@ -126,7 +126,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	public Result<IPage<SysUser>> queryPageList(HttpServletRequest req, QueryWrapper<SysUser> queryWrapper, Integer pageSize, Integer pageNo) {
 		log.info("querypage req{}",JSONObject.toJSONString(queryWrapper));
 		Result<IPage<SysUser>> result = new Result<IPage<SysUser>>();
-		//update-begin-Author:wangshuai--Date:20211119--for:【vue3】通过部门id查询用户，通过code查询id
 		//部门ID
 		String departId = req.getParameter("departId");
 		if (oConvertUtils.isNotEmpty(departId)) {
@@ -169,8 +168,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 //			queryWrapper.like("username", req.getParameter("username"));
 //		}
 
+		LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+		String currentUserId = sysUser.getId();
+		List<String> cids = new ArrayList<>();
+		cids.add(currentUserId);
+		List<SysRole> cRoleList = sysRoleMapper.getRoleNameByUserId(cids);
+		log.info("cRoleList 数据返回{}",JSONObject.toJSONString(cRoleList));
+		SysRole sysRole = cRoleList.get(0);
+		if(!sysRole.getRoleName().equals("管理员")){
+			//屏蔽所有管理员账号
+			List<String> list = sysRoleMapper.getAllAdminUIds();
+			queryWrapper.notIn("id", list);
+		}
+
 		Page<SysUser> page = new Page<SysUser>(pageNo, pageSize);
 		IPage<SysUser> pageList = this.page(page, queryWrapper);
+		List<String> uIds = pageList.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
+		List<SysRole> roleList = sysRoleMapper.getRoleNameByUserId(uIds);
+		Map<String,String> map = roleList.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName()));
+		pageList.getRecords().stream().forEach(item->{
+			if(map.containsKey(item.getId())){
+				item.setRoleName(map.get(item.getId()));
+			}
+		});
 
 		//批量查询用户的所属部门
 		//step.1 先拿到全部的 useids

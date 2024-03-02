@@ -221,5 +221,7 @@ public class SysUser implements Serializable {
 
     @TableField(exist = false)
     private String roleId;
+    @TableField(exist = false)
+    private String roleName;
 
 }
