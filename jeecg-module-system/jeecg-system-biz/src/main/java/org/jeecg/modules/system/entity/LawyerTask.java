@@ -32,7 +32,7 @@ public class LawyerTask implements Serializable {
 	/**任务id*/
 	@TableId(type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "任务id")
-    private Integer id;
+    private String id;
 	/**任务名称*/
 	@Excel(name = "任务名称", width = 15)
     @ApiModelProperty(value = "任务名称")
@@ -68,4 +68,6 @@ public class LawyerTask implements Serializable {
 	@Excel(name = "检索域", width = 15)
     @ApiModelProperty(value = "检索域")
     private String searchDomain;
+
+	private String channel;
 }

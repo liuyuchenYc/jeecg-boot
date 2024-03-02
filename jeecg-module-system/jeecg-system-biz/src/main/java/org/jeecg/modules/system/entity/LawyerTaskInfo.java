@@ -29,7 +29,7 @@ public class LawyerTaskInfo implements Serializable {
 	/**线索id*/
 	@TableId(type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "线索id")
-    private java.lang.Integer id;
+    private java.lang.String id;
 	/**商品标题*/
 	@Excel(name = "商品标题", width = 15)
     @ApiModelProperty(value = "商品标题")

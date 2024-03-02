@@ -1,5 +1,8 @@
 package org.jeecg.modules.system.controller;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
@@ -50,7 +53,16 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 								   HttpServletRequest req) {
 		QueryWrapper<LawyerTaskInfo> queryWrapper = QueryGenerator.initQueryWrapper(lawyerTaskInfo, req.getParameterMap());
 		Page<LawyerTaskInfo> page = new Page<LawyerTaskInfo>(pageNo, pageSize);
+//		Map<String,String> channelMap = new HashMap<>();
+//		channelMap.put("1", "");
+//		channelMap.put("2", "");
+//		channelMap.put("3", "");
+//		channelMap.put("4", "");
+//		channelMap.put("5", "");
+//		channelMap.put("6", "");
+
 		IPage<LawyerTaskInfo> pageList = lawyerTaskInfoService.page(page, queryWrapper);
+		List<LawyerTaskInfo> list = pageList.getRecords();
 		return Result.OK(pageList);
 	}
 

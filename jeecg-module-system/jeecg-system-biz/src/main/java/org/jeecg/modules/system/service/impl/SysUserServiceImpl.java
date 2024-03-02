@@ -187,15 +187,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		List<String> uIds = pageList.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
 		LambdaQueryWrapper<SysRole> roleLambdaQueryWrapper = new LambdaQueryWrapper<>();
 		roleLambdaQueryWrapper.in(SysRole::getUserId,uIds);
+		//userId
 		List<SysRole> roleListB = sysRoleMapper.getRoleNameByUserIds(uIds);
-//		List<SysRole> roleList = sysRoleMapper.selectList(roleLambdaQueryWrapper);
-		Map<String,String> map = roleListB.stream().collect(Collectors.toMap(SysRole::getId,p->p.getRoleName()));
-		pageList.getRecords().stream().forEach(item->{
+		Map<String,String> map = roleListB.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName()));
+		List<SysUser> userList = pageList.getRecords();
+		userList.stream().forEach(item->{
 			if(map.containsKey(item.getId())){
 				item.setRoleName(map.get(item.getId()));
 			}
 		});
-
+		pageList.setRecords(userList);
 		//批量查询用户的所属部门
 		//step.1 先拿到全部的 useids
 		//step.2 通过 useids，一次性查询用户的所属部门名字

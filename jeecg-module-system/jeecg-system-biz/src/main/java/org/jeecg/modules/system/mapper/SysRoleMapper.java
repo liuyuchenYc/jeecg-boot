@@ -76,6 +76,7 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
             "<foreach collection='userIds' item='userIds' open='(' separator=',' close=')'>",
             "#{userIds}",
             "</foreach>",
+            "group by t2.id ",
             "</script>"
     })
     List<SysRole> getRoleNameByUserIds(@Param("userIds")List<String> userIds);

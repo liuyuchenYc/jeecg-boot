@@ -60,6 +60,7 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
     * @return
     */
    @AutoLog(value = "lawyer_task-添加")
+   @ApiOperation(value="lawyer_task-添加", notes="lawyer_task-添加")
    @PostMapping(value = "/add")
    public Result<String> add(@RequestBody LawyerTask lawyerTask) {
        lawyerTaskService.save(lawyerTask);
