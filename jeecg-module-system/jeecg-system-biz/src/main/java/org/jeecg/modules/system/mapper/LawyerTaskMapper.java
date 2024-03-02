@@ -1,8 +1,8 @@
-package org.jeecg.modules.lawyer.mapper;
+package org.jeecg.modules.system.mapper;
 
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.jeecg.modules.lawyer.entity.LawyerTask;
+import org.jeecg.modules.system.entity.LawyerTask;
 
 /**
  * @Description: lawyer_task

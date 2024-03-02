@@ -1,8 +1,8 @@
-package org.jeecg.modules.lawyer.service;
+package org.jeecg.modules.system.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.jeecg.modules.lawyer.entity.LawyerTask;
+import org.jeecg.modules.system.entity.LawyerTask;
 
 /**
  * @Description: lawyer_task

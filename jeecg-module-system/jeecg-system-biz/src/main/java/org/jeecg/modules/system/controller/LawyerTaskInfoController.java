@@ -1,11 +1,11 @@
-package org.jeecg.modules.lawyer.controller;
+package org.jeecg.modules.system.controller;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
-import org.jeecg.modules.lawyer.entity.LawyerTaskInfo;
-import org.jeecg.modules.lawyer.service.ILawyerTaskInfoService;
+import org.jeecg.modules.system.entity.LawyerTaskInfo;
+import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

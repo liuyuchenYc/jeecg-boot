@@ -1,10 +1,10 @@
-package org.jeecg.modules.lawyer.service.impl;
+package org.jeecg.modules.system.service.impl;
 
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.jeecg.modules.lawyer.entity.LawyerTask;
-import org.jeecg.modules.lawyer.mapper.LawyerTaskMapper;
-import org.jeecg.modules.lawyer.service.ILawyerTaskService;
+import org.jeecg.modules.system.entity.LawyerTask;
+import org.jeecg.modules.system.mapper.LawyerTaskMapper;
+import org.jeecg.modules.system.service.ILawyerTaskService;
 import org.springframework.stereotype.Service;
 
 /**
