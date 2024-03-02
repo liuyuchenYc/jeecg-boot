@@ -27,6 +27,7 @@ import org.jeecg.common.constant.enums.RoleIndexConfigEnum;
 import org.jeecg.common.desensitization.annotation.SensitiveEncode;
 import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.api.ISysBaseAPI;
+import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.system.vo.SysUserCacheInfo;
 import org.jeecg.common.util.*;
@@ -168,7 +169,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 //			queryWrapper.like("username", req.getParameter("username"));
 //		}
 
-		LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+		String uName = JwtUtil.getUserNameByToken(req);
+		log.info("当前登录账号为:{}",uName);
+		SysUser sysUser = userMapper.getUserByName(uName);
 		String currentUserId = sysUser.getId();
 		List<String> cids = new ArrayList<>();
 		cids.add(currentUserId);
