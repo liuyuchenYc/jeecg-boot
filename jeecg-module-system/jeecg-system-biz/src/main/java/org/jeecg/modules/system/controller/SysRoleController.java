@@ -69,13 +69,13 @@ import lombok.extern.slf4j.Slf4j;
 public class SysRoleController {
 	@Autowired
 	private ISysRoleService sysRoleService;
-	
+
 	@Autowired
 	private ISysPermissionDataRuleService sysPermissionDataRuleService;
-	
+
 	@Autowired
 	private ISysRolePermissionService sysRolePermissionService;
-	
+
 	@Autowired
 	private ISysPermissionService sysPermissionService;
 
@@ -83,7 +83,7 @@ public class SysRoleController {
     private ISysUserRoleService sysUserRoleService;
 	@Autowired
 	private BaseCommonService baseCommonService;
-	
+
 	/**
 	  * 分页列表查询 【系统角色，不做租户隔离】
 	 * @param role
@@ -108,7 +108,7 @@ public class SysRoleController {
 		result.setResult(pageList);
 		return result;
 	}
-	
+
 	/**
 	 * 分页列表查询【租户角色，做租户隔离】
 	 * @param role
@@ -130,7 +130,7 @@ public class SysRoleController {
 			role.setTenantId(oConvertUtils.getInt(!"0".equals(TenantContext.getTenant()) ? TenantContext.getTenant() : "", -1));
 		}
 		//update-end---author:wangshuai---date:2023-11-20---for:【QQYUN-7089】低代码模式 选择组织角色没有数据 在租户角色中添加数据后，列表也无数据展示---
-		
+
 		QueryWrapper<SysRole> queryWrapper = QueryGenerator.initQueryWrapper(role, req.getParameterMap());
 		Page<SysRole> page = new Page<SysRole>(pageNo, pageSize);
 		IPage<SysRole> pageList = sysRoleService.page(page, queryWrapper);
@@ -138,7 +138,7 @@ public class SysRoleController {
 		result.setResult(pageList);
 		return result;
 	}
-	
+
 	/**
 	  *   添加
 	 * @param role
@@ -162,7 +162,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  *  编辑
 	 * @param role
@@ -191,7 +191,7 @@ public class SysRoleController {
 				}
 			}
 			//------------------------------------------------------------------
-			
+
 			boolean ok = sysRoleService.updateById(role);
 			if(ok) {
 				result.success("修改成功!");
@@ -199,7 +199,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  *   通过id删除
 	 * @param id
@@ -223,7 +223,7 @@ public class SysRoleController {
 		sysRoleService.deleteRole(id);
 		return Result.ok("删除角色成功");
 	}
-	
+
 	/**
 	  *  批量删除
 	 * @param ids
@@ -257,7 +257,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  * 通过id查询
 	 * @param id
@@ -278,7 +278,7 @@ public class SysRoleController {
 
 	/**
 	 * 查询全部角色（参与租户隔离）
-	 * 
+	 *
 	 * @return
 	 */
 	@RequestMapping(value = "/queryall", method = RequestMethod.GET)
@@ -311,6 +311,7 @@ public class SysRoleController {
 	public Result<List<SysRole>> queryallNoByTenant() {
 		Result<List<SysRole>> result = new Result<>();
 		LambdaQueryWrapper<SysRole> query = new LambdaQueryWrapper<SysRole>();
+		query.notIn(SysRole::getRoleName,"管理员");
 		List<SysRole> list = sysRoleService.list(query);
 		if(list==null||list.size()<=0) {
 			result.error500("未找到角色信息");
@@ -320,7 +321,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  * 校验角色编码唯一
 	 */
@@ -373,7 +374,7 @@ public class SysRoleController {
 			sysRole.setTenantId(oConvertUtils.getInt(TenantContext.getTenant(), 0));
 		}
 		//------------------------------------------------------------------------------------------------
-		
+
 		// Step.1 组装查询条件
 		QueryWrapper<SysRole> queryWrapper = QueryGenerator.initQueryWrapper(sysRole, request.getParameterMap());
 		//Step.2 AutoPoi 导出Excel
@@ -420,7 +421,7 @@ public class SysRoleController {
 		}
 		return Result.error("文件导入失败！");
 	}
-	
+
 	/**
 	 * 查询数据规则数据
 	 */
@@ -449,7 +450,7 @@ public class SysRoleController {
 			//TODO 以后按钮权限的查询也走这个请求 无非在map中多加两个key
 		}
 	}
-	
+
 	/**
 	 * 保存数据规则至角色菜单关联表
 	 */
@@ -476,8 +477,8 @@ public class SysRoleController {
 		}
 		return Result.ok("保存成功!");
 	}
-	
-	
+
+
 	/**
 	 * 用户角色授权功能，查询菜单权限树
 	 * @param request
@@ -510,7 +511,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	private void getTreeModelList(List<TreeModel> treeList,List<SysPermission> metaList,TreeModel temp) {
 		for (SysPermission permission : metaList) {
 			String tempPid = permission.getParentId();
@@ -526,7 +527,7 @@ public class SysRoleController {
 					getTreeModelList(treeList, metaList, tree);
 				}
 			}
-			
+
 		}
 	}
 

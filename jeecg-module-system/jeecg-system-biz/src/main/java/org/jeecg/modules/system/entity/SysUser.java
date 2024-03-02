@@ -211,4 +211,15 @@ public class SysUser implements Serializable {
      */
     @TableField(exist = false)
     private boolean izBindThird;
+
+    private String remark;
+
+    private Date expirationDate;
+
+    private Integer accountStatus;
+
+
+    @TableField(exist = false)
+    private String roleId;
+
 }
