@@ -11,4 +11,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ILawyerTaskInfoService extends IService<LawyerTaskInfo> {
 
+    int selectTaskInfoNum(String taskId);
 }

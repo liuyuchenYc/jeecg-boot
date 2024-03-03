@@ -16,4 +16,5 @@ import org.springframework.stereotype.Service;
 @Service
 public class LawyerTaskServiceImpl extends ServiceImpl<LawyerTaskMapper, LawyerTask> implements ILawyerTaskService {
 
+
 }

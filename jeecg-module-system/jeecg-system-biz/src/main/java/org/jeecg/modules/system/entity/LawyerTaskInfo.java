@@ -65,7 +65,7 @@ public class LawyerTaskInfo implements Serializable {
 	/**任务id*/
 	@Excel(name = "任务id", width = 15)
     @ApiModelProperty(value = "任务id")
-    private java.lang.Integer taskId;
+    private java.lang.String taskId;
 	/**渠道*/
 	@Excel(name = "渠道", width = 15)
     @ApiModelProperty(value = "渠道")
