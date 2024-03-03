@@ -11,6 +11,7 @@ import org.jeecg.modules.system.mapper.LawyerTaskInfoMapper;
 import org.jeecg.modules.system.mapper.LawyerTaskMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import org.jeecg.modules.system.service.ILawyerTaskService;
+import org.jeecg.modules.system.service.lawyer.DelayedQueueService;
 import org.jeecg.modules.system.service.lawyer.LawyerProductContext;
 import org.jeecg.modules.system.service.lawyer.Vo.DYProductResultVo;
 import org.jeecg.modules.system.service.lawyer.Vo.JdProductResultVo;
@@ -26,13 +27,14 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,8 @@ public class LawyerTaskJob implements Job {
 
     private static final String SET_IF_NOT_EXIST = "NX";
 
+    ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
 
     @Autowired
     private ILawyerTaskService taskService;
@@ -57,7 +61,7 @@ public class LawyerTaskJob implements Job {
     private LawyerTaskMapper lawyerTaskMapper;
 
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private LawyerTaskChannelMapper taskChannelMapper;
 
@@ -67,6 +71,9 @@ public class LawyerTaskJob implements Job {
     public void setParameter(String parameter) {
         this.parameter = parameter;
     }
+    @Autowired
+    private DelayedQueueService delayedQueueService;
+
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -92,18 +99,13 @@ public class LawyerTaskJob implements Job {
                 String serviceName = channelMap.get(k);
                 lawyerProductContext.getProxy(serviceName).doItemSearch(item.getKeyWord(),item.getId());
             });
-            LawyerTask task = new LawyerTask();
-            task.setFinishTime(new Date());
-            task.setStatus(1);
-            task.setId(item.getId());
-            int infoNum =taskInfoService.selectTaskInfoNum(item.getId());
-            task.setClueTotal(infoNum);
-            lawyerTaskMapper.updateById(task);
-
+            Random random = new Random();
+            delayedQueueService.addTask(item.getId(),random.nextInt(900) + 1800);
         });
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("LawyerTaskJob Job !   时间:" + DateUtils.now(), this.parameter));
     }
+
 
 
 }

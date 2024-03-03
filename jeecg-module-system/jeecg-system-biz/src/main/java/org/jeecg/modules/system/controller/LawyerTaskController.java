@@ -1,5 +1,6 @@
 package org.jeecg.modules.system.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -10,8 +11,11 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.common.system.base.controller.JeecgController;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.modules.system.entity.LawyerTask;
+import org.jeecg.modules.system.entity.LawyerTaskInfo;
+import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import org.jeecg.modules.system.service.ILawyerTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +34,10 @@ import java.util.Arrays;
 public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTaskService> {
    @Autowired
    private ILawyerTaskService lawyerTaskService;
-
+    @Autowired
+    private ILawyerTaskInfoService taskInfoService;
+   @Autowired
+   private StringRedisTemplate redisTemplate;
    /**
     * 分页列表查询
     *
@@ -64,6 +71,9 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
    @PostMapping(value = "/add")
    public Result<String> add(@RequestBody LawyerTask lawyerTask) {
        lawyerTaskService.save(lawyerTask);
+       String id = lawyerTask.getId();
+       log.info("lawyer_task 保存后Id为{}", JSONObject.toJSONString(lawyerTask));
+       redisTemplate.opsForValue().set("lawyer_task:"+id,"1");
        return Result.OK("添加成功！");
    }
 
@@ -78,6 +88,9 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
    @RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
    public Result<String> edit(@RequestBody LawyerTask lawyerTask) {
        lawyerTaskService.updateById(lawyerTask);
+       if(lawyerTask.getStatus() != null && lawyerTask.getStatus() == 2){
+           redisTemplate.opsForValue().set("lawyer_task:"+lawyerTask.getId(),"2");
+       }
        return Result.OK("编辑成功!");
    }
 
@@ -118,10 +131,18 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
    //@AutoLog(value = "lawyer_task-通过id查询")
    @ApiOperation(value="lawyer_task-通过id查询", notes="lawyer_task-通过id查询")
    @GetMapping(value = "/queryById")
-   public Result<LawyerTask> queryById(@RequestParam(name="id",required=true) String id) {
+   public Result<LawyerTask> queryById(@RequestParam(name="id",required=true) String id,
+                                       @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
+                                       @RequestParam(name="pageSize", defaultValue="10") Integer pageSize) {
        LawyerTask lawyerTask = lawyerTaskService.getById(id);
        if(lawyerTask==null) {
            return Result.error("未找到对应数据");
+       }
+       if(lawyerTask.getStatus() == 1){
+           QueryWrapper<LawyerTaskInfo> queryWrapper = new QueryWrapper<>();
+           Page<LawyerTaskInfo> page = new Page<LawyerTaskInfo>(pageNo, pageSize);
+           IPage<LawyerTaskInfo> pageList = taskInfoService.page(page, queryWrapper);
+           lawyerTask.setPageInfoList(pageList);
        }
        return Result.OK(lawyerTask);
    }

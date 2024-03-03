@@ -13,6 +13,7 @@ import org.jeecg.modules.system.service.lawyer.Vo.KSProductResultVo;
 import org.jeecg.modules.system.service.lawyer.constants.OneBoundContants;
 import org.jeecg.modules.system.service.lawyer.strategy.LawyerProductStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -46,6 +47,9 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
     private static String keyword = "";
 
     private String TASK_ID = "";
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
 
     @Override
@@ -81,6 +85,10 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = currentPage; i < totalPages ; i++) {
+                String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
+                if(isReady.equals("2")){
+                    break;
+                }
                 int finalI = i;
                 log.info("第{}页请求",i);
                 fetchDataFromRemote(finalI);

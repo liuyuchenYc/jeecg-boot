@@ -1,8 +1,10 @@
 package org.jeecg.modules.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -14,6 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Description: lawyer_task
@@ -70,4 +73,7 @@ public class LawyerTask implements Serializable {
     private String searchDomain;
 
 	private String channel;
+
+    @TableField(exist = false)
+    private IPage<LawyerTaskInfo> pageInfoList ;
 }

@@ -10,6 +10,7 @@ import org.jeecg.modules.system.service.lawyer.Vo.XHSProductResultVo;
 import org.jeecg.modules.system.service.lawyer.constants.OneBoundContants;
 import org.jeecg.modules.system.service.lawyer.strategy.LawyerProductStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +36,8 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
 
     private String TASK_ID = "";
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
@@ -69,6 +72,10 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = currentPage; i < totalPages ; i++) {
+                String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
+                if(isReady.equals("2")){
+                    break;
+                }
                 int finalI = i;
                 log.info("第{}页请求",i);
                 CompletableFuture.runAsync(()->{

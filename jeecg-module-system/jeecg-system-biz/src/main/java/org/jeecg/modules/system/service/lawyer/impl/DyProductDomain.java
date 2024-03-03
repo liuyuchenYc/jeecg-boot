@@ -10,6 +10,7 @@ import org.jeecg.modules.system.service.lawyer.Vo.DYProductResultVo;
 import org.jeecg.modules.system.service.lawyer.constants.OneBoundContants;
 import org.jeecg.modules.system.service.lawyer.strategy.LawyerProductStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,6 +39,8 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
 
     private String TASK_ID = "";
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
@@ -72,6 +75,10 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = 2; i < totalPages ; i++) {
+               String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
+               if(isReady.equals("2")){
+                   break;
+               }
                 int finalI = i;
                 log.info("第{}页请求",i);
                 fetchDataFromRemote(finalI);
