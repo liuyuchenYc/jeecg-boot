@@ -168,7 +168,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 //		if (!StringUtils.isEmpty(req.getParameter("username"))) {
 //			queryWrapper.like("username", req.getParameter("username"));
 //		}
-
 		String uName = JwtUtil.getUserNameByToken(req);
 		log.info("当前登录账号为:{}",uName);
 		SysUser sysUser = userMapper.getUserByName(uName);

@@ -214,6 +214,7 @@ public class SysUser implements Serializable {
 
     private String remark;
 
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date expirationDate;
 
     private Integer accountStatus;
