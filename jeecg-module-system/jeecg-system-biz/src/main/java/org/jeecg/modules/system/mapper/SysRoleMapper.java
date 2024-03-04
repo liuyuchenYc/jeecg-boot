@@ -69,9 +69,11 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
 
     @Select({
             "<script>",
-            "select",
-            "t1.user_id," + "t2.* ",
-            "from sys_user_role t1 left join  sys_role t2 on  t1.role_id = t2.id ",
+            "SELECT DISTINCT",
+            "t2.*",
+                    "FROM",
+           " sys_user_role t1",
+            "LEFT JOIN sys_role t2 ON t1.role_id = t2.id  ",
             "where t1.user_id in",
             "<foreach collection='userIds' item='userIds' open='(' separator=',' close=')'>",
             "#{userIds}",
