@@ -188,7 +188,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		roleLambdaQueryWrapper.in(SysRole::getUserId,uIds);
 		//userId
 		List<SysRole> roleListB = sysRoleMapper.getRoleNameByUserIds(uIds);
-		Map<String,String> map = roleListB.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName()));
+		Map<String,String> map = roleListB.stream().collect(Collectors.toMap(SysRole::getUserId,p->p.getRoleName(),(k,v)->k));
 		List<SysUser> userList = pageList.getRecords();
 		userList.stream().forEach(item->{
 			if(map.containsKey(item.getId())){
