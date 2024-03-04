@@ -52,6 +52,7 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
 		QueryWrapper<LawyerTaskInfo> queryWrapper = QueryGenerator.initQueryWrapper(lawyerTaskInfo, req.getParameterMap());
+		queryWrapper.eq("task_id",lawyerTaskInfo.getTaskId());
 		Page<LawyerTaskInfo> page = new Page<LawyerTaskInfo>(pageNo, pageSize);
 		IPage<LawyerTaskInfo> pageList = lawyerTaskInfoService.page(page, queryWrapper);
 		return Result.OK(pageList);
