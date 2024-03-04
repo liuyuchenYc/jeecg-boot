@@ -1,19 +1,24 @@
 package org.jeecg.modules.system.controller;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.modules.system.entity.LawyerTaskChannel;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
+import org.jeecg.modules.system.mapper.LawyerTaskChannelMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.system.base.controller.JeecgController;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -35,6 +40,8 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 	@Autowired
 	private ILawyerTaskInfoService lawyerTaskInfoService;
 
+	@Resource
+	private LawyerTaskChannelMapper taskChannelMapper;
 	/**
 	 * 分页列表查询
 	 *
@@ -51,10 +58,32 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
-		QueryWrapper<LawyerTaskInfo> queryWrapper = QueryGenerator.initQueryWrapper(lawyerTaskInfo, req.getParameterMap());
-		queryWrapper.eq("task_id",lawyerTaskInfo.getTaskId());
+
+		LambdaQueryWrapper<LawyerTaskInfo> infoQueryWrapper = new LambdaQueryWrapper<>();
+		infoQueryWrapper.eq(LawyerTaskInfo::getTaskId,lawyerTaskInfo.getTaskId());
+		List<String> ids = new ArrayList<>();
+		if(lawyerTaskInfo.getChannel() != null){
+			LambdaQueryWrapper<LawyerTaskChannel> queryWrapper = new LambdaQueryWrapper<>();
+			queryWrapper.eq(LawyerTaskChannel::getChannelType,lawyerTaskInfo.getSearchDomain());
+			queryWrapper.eq(LawyerTaskChannel::getYn,1);
+			List<LawyerTaskChannel> taskChannelList = taskChannelMapper.selectList(queryWrapper);
+			Map<String,Object> map = taskChannelList.stream().collect(Collectors.toMap(LawyerTaskChannel::getServiceNum,p->p.getChannel()));
+			String channel = lawyerTaskInfo.getChannel();
+			String [] channelArray = channel.split(",");
+			Arrays.stream(channelArray).forEach(item->{
+					ids.add(map.get(item).toString());
+			});
+			infoQueryWrapper.in(LawyerTaskInfo::getChannel,ids);
+		}
+		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductSummary())){
+			infoQueryWrapper.like(LawyerTaskInfo::getProductSummary,lawyerTaskInfo.getProductSummary());
+		}
+		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
+			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
+		}
 		Page<LawyerTaskInfo> page = new Page<LawyerTaskInfo>(pageNo, pageSize);
-		IPage<LawyerTaskInfo> pageList = lawyerTaskInfoService.page(page, queryWrapper);
+		log.info("req{}",infoQueryWrapper);
+		IPage<LawyerTaskInfo> pageList = lawyerTaskInfoService.page(page,infoQueryWrapper );
 		return Result.OK(pageList);
 	}
 

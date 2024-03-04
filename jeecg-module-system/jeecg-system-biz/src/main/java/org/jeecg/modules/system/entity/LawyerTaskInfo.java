@@ -3,6 +3,7 @@ package org.jeecg.modules.system.entity;
 import java.io.Serializable;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -102,4 +103,7 @@ public class LawyerTaskInfo implements Serializable {
 	@Excel(name = "用户签名", width = 15)
     @ApiModelProperty(value = "用户签名")
     private java.lang.String userSign;
+
+    @TableField(exist = false)
+    private String searchDomain;
 }
