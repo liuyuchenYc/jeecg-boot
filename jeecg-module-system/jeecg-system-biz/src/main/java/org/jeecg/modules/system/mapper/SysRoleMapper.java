@@ -70,7 +70,8 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     @Select({
             "<script>",
             "SELECT DISTINCT",
-            "t2.*",
+            "t2.*,",
+            "t1.user_id",
                     "FROM",
            " sys_user_role t1",
             "LEFT JOIN sys_role t2 ON t1.role_id = t2.id  ",
