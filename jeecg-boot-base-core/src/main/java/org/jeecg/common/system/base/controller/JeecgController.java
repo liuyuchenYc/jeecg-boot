@@ -1,5 +1,6 @@
 package org.jeecg.common.system.base.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -37,12 +38,11 @@ import java.util.*;
  */
 @Slf4j
 public class JeecgController<T, S extends IService<T>> {
-    /**issues/2933 JeecgController注入service时改用protected修饰，能避免重复引用service*/
     @Autowired
     protected S service;
     @Resource
     private JeecgBaseConfig jeecgBaseConfig;
-    
+
     /**
      * 导出excel
      *
@@ -53,6 +53,31 @@ public class JeecgController<T, S extends IService<T>> {
         QueryWrapper<T> queryWrapper = QueryGenerator.initQueryWrapper(object, request.getParameterMap());
         LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
 
+        // 过滤选中数据
+        String selections = request.getParameter("selections");
+        if (oConvertUtils.isNotEmpty(selections)) {
+            List<String> selectionList = Arrays.asList(selections.split(","));
+            queryWrapper.in("id",selectionList);
+        }
+        // Step.2 获取导出数据
+        List<T> exportList = service.list(queryWrapper);
+
+        // Step.3 AutoPoi 导出Excel
+        ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
+        //此处设置的filename无效 ,前端会重更新设置一下
+        mv.addObject(NormalExcelConstants.FILE_NAME, title);
+        mv.addObject(NormalExcelConstants.CLASS, clazz);
+        //update-begin--Author:liusq  Date:20210126 for：图片导出报错，ImageBasePath未设置--------------------
+        ExportParams exportParams=new ExportParams(title + "报表", "导出人:" + sysUser.getRealname(), title);
+        exportParams.setImageBasePath(jeecgBaseConfig.getPath().getUpload());
+        //update-end--Author:liusq  Date:20210126 for：图片导出报错，ImageBasePath未设置----------------------
+        mv.addObject(NormalExcelConstants.PARAMS,exportParams);
+        mv.addObject(NormalExcelConstants.DATA_LIST, exportList);
+        return mv;
+    }
+
+    protected ModelAndView newExportXls(HttpServletRequest request, T object, Class<T> clazz, String title, LambdaQueryWrapper queryWrapper) {
+        LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         // 过滤选中数据
         String selections = request.getParameter("selections");
         if (oConvertUtils.isNotEmpty(selections)) {

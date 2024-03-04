@@ -168,7 +168,28 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
     */
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, LawyerTaskInfo lawyerTaskInfo) {
-        return super.exportXls(request, lawyerTaskInfo, LawyerTaskInfo.class, "lawyer_task_info");
+		LambdaQueryWrapper<LawyerTaskInfo> infoQueryWrapper = new LambdaQueryWrapper<>();
+		List<String> ids = new ArrayList<>();
+		if(lawyerTaskInfo.getChannel() != null){
+			LambdaQueryWrapper<LawyerTaskChannel> queryWrapper = new LambdaQueryWrapper<>();
+			queryWrapper.eq(LawyerTaskChannel::getChannelType,lawyerTaskInfo.getSearchDomain());
+			queryWrapper.eq(LawyerTaskChannel::getYn,1);
+			List<LawyerTaskChannel> taskChannelList = taskChannelMapper.selectList(queryWrapper);
+			Map<String,Object> map = taskChannelList.stream().collect(Collectors.toMap(LawyerTaskChannel::getServiceNum,p->p.getChannel()));
+			String channel = lawyerTaskInfo.getChannel();
+			String [] channelArray = channel.split(",");
+			Arrays.stream(channelArray).forEach(item->{
+				ids.add(map.get(item).toString());
+			});
+			infoQueryWrapper.in(LawyerTaskInfo::getChannel,ids);
+		}
+		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductSummary())){
+			infoQueryWrapper.like(LawyerTaskInfo::getProductSummary,lawyerTaskInfo.getProductSummary());
+		}
+		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
+			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
+		}
+        return super.newExportXls(request, lawyerTaskInfo, LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper);
     }
 
     /**
