@@ -28,11 +28,11 @@ public class DelayedQueueService {
     @Autowired
     private ILawyerTaskInfoService iLawyerTaskService;
 
-//    @PostConstruct
-//    public void init() {
-//        log.info("启动延时队列成功");
-//        new Thread(this::processTasks).start();
-//    }
+    @PostConstruct
+    public void init() {
+        log.info("启动延时队列成功");
+        new Thread(this::processTasks).start();
+    }
 
     // 添加任务到延时队列
     public void addTask(String taskId, long delayInSeconds) {
