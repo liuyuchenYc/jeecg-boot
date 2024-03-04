@@ -80,7 +80,7 @@ public class LawyerTaskJob implements Job {
         String redisKey = "lawyerProductJob:taskId:";
         LambdaQueryWrapper<LawyerTask> lambdaQueryWrapper = new LambdaQueryWrapper<LawyerTask>();
         lambdaQueryWrapper.eq(LawyerTask::getStatus, 0);
-        lambdaQueryWrapper.eq(LawyerTask::getSearchDomain, 2);
+//        lambdaQueryWrapper.eq(LawyerTask::getSearchDomain, 2);
         lambdaQueryWrapper.eq(LawyerTask::getYn, 1);
         List<LawyerTask> listJob = taskService.list(lambdaQueryWrapper);
         listJob.stream().forEach(item->{

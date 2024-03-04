@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
-import org.jeecg.modules.system.service.lawyer.Vo.KSProductResultVo;
+import org.jeecg.modules.system.service.lawyer.Vo.DouYinContentResultVo;
 import org.jeecg.modules.system.service.lawyer.constants.OneBoundContants;
 import org.jeecg.modules.system.service.lawyer.strategy.LawyerProductStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 @Slf4j
 @Service
-public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo> {
+public class DouYinContentDomain implements LawyerProductStrategy<DouYinContentResultVo> {
 
 
 
@@ -49,21 +49,21 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
     @Override
     public void doItemSearch(String keywords,String taskId) {
         keyword = keywords;
-        url = "https://api-gw.onebound.cn/ks/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
+        url = "https://api-gw.onebound.cn/douyin/item_search_video/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         TASK_ID = taskId;
         int totalPages = 1; // 总页数
         int currentPage = 1; // 当前页数
         int retryCount = 0;
         try {
             String reqStr = HttpUtil.get(url);
-            log.info("KSProductDomain 请求页码{},返回结果{}", currentPage, JSONObject.toJSONString(reqStr));
-            KSProductResultVo resultVo = JSONObject.parseObject(reqStr, KSProductResultVo.class);
-            log.info("KSProductDomain,格式化返回结果{}", JSONObject.toJSONString(resultVo));
+            log.info("DouYinContentDomain 请求页码{},返回结果{}", currentPage, JSONObject.toJSONString(reqStr));
+            DouYinContentResultVo resultVo = JSONObject.parseObject(reqStr, DouYinContentResultVo.class);
+            log.info("DouYinContentDomain,格式化返回结果{}", JSONObject.toJSONString(resultVo));
             if (!"0000".equals(resultVo.getError_code())) {
-                log.error("KSProductDomain 调用目标异常");
+                log.error("DouYinContentDomain 调用目标异常");
                 while (retryCount < MAX_RETRIES) {
                     String retryStr = HttpUtil.get(url);
-                    KSProductResultVo retryVo = JSONObject.parseObject(retryStr, KSProductResultVo.class);
+                    DouYinContentResultVo retryVo = JSONObject.parseObject(retryStr, DouYinContentResultVo.class);
                     log.info("retryVo,格式化返回结果{}", JSONObject.toJSONString(retryVo));
                     if ("0000".equals(retryVo.getError_code())) {
                         convertData(retryVo);
@@ -77,7 +77,7 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
                 }
             }
             convertData(resultVo);
-            totalPages = resultVo.getItems().getPagecount();
+            totalPages = resultVo.getPagecount();
             for (int i = currentPage; i < totalPages ; i++) {
                 String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
                 if(isReady.equals("2")){
@@ -102,7 +102,7 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
 //                });
             }
         } catch (Exception e) {
-            log.error("KSProductDomain 调用异常{}", e.getMessage());
+            log.error("DouYinContentDomain 调用异常{}", e.getMessage());
         }
 
     }
@@ -121,14 +121,14 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
         try {
             String remoteStr = HttpUtil.get(url);
             int retryCount = 0;
-            log.info("KSProductDomain 请求页码{},返回结果{}", page, JSONObject.toJSONString(remoteStr));
-            KSProductResultVo resultVo = JSONObject.parseObject(remoteStr, KSProductResultVo.class);
-            log.info("KSProductDomain,格式化返回结果{}", JSONObject.toJSONString(resultVo));
+            log.info("DouYinContentDomain 请求页码{},返回结果{}", page, JSONObject.toJSONString(remoteStr));
+            DouYinContentResultVo resultVo = JSONObject.parseObject(remoteStr, DouYinContentResultVo.class);
+            log.info("DouYinContentDomain,格式化返回结果{}", JSONObject.toJSONString(resultVo));
             if (!"0000".equals(resultVo.getError_code())) {
-                log.error("KSProductDomain 调用目标异常");
+                log.error("DouYinContentDomain 调用目标异常");
                 while (retryCount < MAX_RETRIES) {
                     String retryStr = HttpUtil.get(url);
-                    KSProductResultVo retryVo = JSONObject.parseObject(retryStr, KSProductResultVo.class);
+                    DouYinContentResultVo retryVo = JSONObject.parseObject(retryStr, DouYinContentResultVo.class);
                     log.info("retryVo,格式化返回结果{}", JSONObject.toJSONString(retryVo));
                     if ("0000".equals(retryVo.getError_code())) {
                         convertData(retryVo);
@@ -143,7 +143,7 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
             }
             convertData(resultVo);
         } catch (Exception e) {
-            log.error("KSProductDomain 调用异常{}", e.getMessage());
+            log.error("DouYinContentDomain 调用异常{}", e.getMessage());
         }
         if(state){
             return "成功";
@@ -158,19 +158,22 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
      * @param vo
      */
     @Override
-    public void convertData(KSProductResultVo vo){
-        vo.getItems().getItem().stream().forEach(item->{
+    public void convertData(DouYinContentResultVo vo){
+        vo.getItem().stream().forEach(item->{
             LawyerTaskInfo lawyerTaskInfo = new LawyerTaskInfo();
             lawyerTaskInfo.setChannel("快手");
             if(!StringUtils.isEmpty(item.getTitle())){
-                lawyerTaskInfo.setProductTitle(item.getTitle());
+                lawyerTaskInfo.setContent(item.getTitle());
             }
-            if(!StringUtils.isEmpty(item.getPic_url())){
-                lawyerTaskInfo.setProductCover(item.getPic_url());
+            if(!StringUtils.isEmpty(item.getNick())){
+                lawyerTaskInfo.setContentAuthor(item.getNick());
             }
-            lawyerTaskInfo.setCommodityPrice(new BigDecimal(item.getPrice()));
-            lawyerTaskInfo.setShopName(item.getShop_name());
-            lawyerTaskInfo.setProductLink(item.getDetail_url());
+            if(!StringUtils.isEmpty(item.getUid())){
+                lawyerTaskInfo.setContentAuthorId(item.getUid());
+            }
+            lawyerTaskInfo.setUserSign(item.getSignature());
+            lawyerTaskInfo.setContentUrl(item.getDetail_url());
+            lawyerTaskInfo.setArea(item.getCity());
             lawyerTaskInfo.setTaskId(TASK_ID);
             iLawyerTaskService.save(lawyerTaskInfo);
         });
