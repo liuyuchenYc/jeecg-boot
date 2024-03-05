@@ -31,12 +31,11 @@ public class JeecgSystemApplication extends SpringBootServletInitializer {
         Environment env = application.getEnvironment();
         String ip = InetAddress.getLocalHost().getHostAddress();
         String port = env.getProperty("server.port");
-        String path = oConvertUtils.getString(env.getProperty("server.servlet.context-path"));
         log.info("\n----------------------------------------------------------\n\t" +
-                "Application Jeecg-Boot is running! Access URLs:\n\t" +
-                "Local: \t\thttp://localhost:" + port + path + "/\n\t" +
-                "External: \thttp://" + ip + ":" + port + path + "/\n\t" +
-                "Swagger文档: \thttp://" + ip + ":" + port + path + "/doc.html\n" +
+                "Lawyer running! Access URLs:\n\t" +
+                "Local: \t\thttp://localhost:" + port + "/\n\t" +
+                "External: \thttp://" + ip + ":" + port + "/\n\t" +
+                "Swagger文档: \thttp://" + ip + ":" + port + "/doc.html\n" +
                 "----------------------------------------------------------");
 
     }
