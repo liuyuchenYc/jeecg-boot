@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -39,11 +40,21 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
 
     private String TASK_ID = "";
 
+
+
+
     @Autowired
     private StringRedisTemplate redisTemplate;
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
+        Random random = new Random();
+        int rMin = 800; // 区间最小值
+        int rMax = 900; // 区间最大值
+        // 设置目标总计
+        int targetSum  = rMin + random.nextInt(rMax - rMin + 1);
+        int count = 15;
+        // 初始化当前总和和计数器
         keyword = keywords;
         url = "https://api-gw.onebound.cn/douyin/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         TASK_ID = taskId;
@@ -75,6 +86,10 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = 2; i < totalPages ; i++) {
+                count+=15;
+                if (count > targetSum){
+                    break;
+                }
                String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
                if(isReady.equals("2")){
                    break;
@@ -82,18 +97,12 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
                 int finalI = i;
                 log.info("第{}页请求",i);
                 fetchDataFromRemote(finalI);
-
-//                Runnable task = () -> {
-//                    try {
-//                        fetchDataFromRemote(finalI);
-//                        // 模拟任务执行时间
-//                        Thread.sleep(2000);
-//                    } catch (InterruptedException e) {
-//                        log.error(e.getMessage());
-//                    }
-//                };
+                int min = 3000; // 区间最小值
+                int max = 8000; // 区间最大值
+                // 生成指定范围内的随机整数
+                int randomNum = min + random.nextInt(max - min + 1);
+                Thread.sleep(randomNum);
 //                executorService.scheduleWithFixedDelay(task, 1, 1, TimeUnit.SECONDS);
-
             }
         } catch (Exception e) {
             log.error("DyProductDomain 调用异常{}", e.getMessage());
@@ -168,6 +177,12 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
             lawyerTaskInfo.setShopName(item.getShop_name());
             lawyerTaskInfo.setProductLink(item.getDetail_url());
             lawyerTaskInfo.setTaskId(TASK_ID);
+            if(lawyerTaskInfo.getSalesVolume() != null && lawyerTaskInfo.getCommodityPrice()!=null){
+                BigDecimal saleVolume = new BigDecimal(lawyerTaskInfo.getSalesVolume());
+                BigDecimal totalSale = saleVolume.multiply(lawyerTaskInfo.getCommodityPrice());
+                lawyerTaskInfo.setTotalSale(totalSale);
+            }
+
             iLawyerTaskInfoService.save(lawyerTaskInfo);
         });
 

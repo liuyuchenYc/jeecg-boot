@@ -99,8 +99,13 @@ public class LawyerTaskJob implements Job {
                 String serviceName = channelMap.get(k);
                 lawyerProductContext.getProxy(serviceName).doItemSearch(item.getKeyWord(),item.getId());
             });
-            Random random = new Random();
-            delayedQueueService.addTask(item.getId(),random.nextInt(900) + 1800);
+            Random rand = new Random();
+            // 2小时到4小时的毫秒范围
+            long minMillis = 2L * 60 * 60 * 1000; // 2小时
+            long maxMillis = 4L * 60 * 60 * 1000; // 4小时
+            // 生成随机毫秒数
+            long randomMillis = minMillis + (long) (rand.nextDouble() * (maxMillis - minMillis));
+            delayedQueueService.addTask(item.getId(),randomMillis);
         });
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("LawyerTaskJob Job !   时间:" + DateUtils.now(), this.parameter));

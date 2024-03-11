@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -48,6 +49,12 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
+        Random random = new Random();
+        int rMin = 600; // 区间最小值
+        int rMax = 700; // 区间最大值
+        // 设置目标总计
+        int targetSum  = rMin + random.nextInt(rMax - rMin + 1);
+        int count = 15;
         keyword = keywords;
         url = "https://api-gw.onebound.cn/ks/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         TASK_ID = taskId;

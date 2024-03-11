@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -41,6 +42,12 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
+        Random random = new Random();
+        int rMin = 300; // 区间最小值
+        int rMax = 400; // 区间最大值
+        // 设置目标总计
+        int targetSum  = rMin + random.nextInt(rMax - rMin + 1);
+        int count = 15;
         keyword = keywords;
         url = "https://api-gw.onebound.cn/smallredbook/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         TASK_ID = taskId;
@@ -72,15 +79,22 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = currentPage; i < totalPages ; i++) {
+                count+=15;
+                if (count > targetSum){
+                    break;
+                }
                 String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
                 if(isReady.equals("2")){
                     break;
                 }
                 int finalI = i;
                 log.info("第{}页请求",i);
-                CompletableFuture.runAsync(()->{
-                    fetchDataFromRemote(finalI);
-                });
+                fetchDataFromRemote(finalI);
+                int min = 3000; // 区间最小值
+                int max = 8000; // 区间最大值
+                // 生成指定范围内的随机整数
+                int randomNum = min + random.nextInt(max - min + 1);
+                Thread.sleep(randomNum);
             }
         } catch (Exception e) {
             log.error("XHSProductDomain 调用异常{}", e.getMessage());
@@ -154,6 +168,11 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
                 lawyerTaskInfo.setProductCover(item.getPic_url());
             }
             lawyerTaskInfo.setSalesVolume(item.getSales());
+            if(lawyerTaskInfo.getSalesVolume() != null && lawyerTaskInfo.getCommodityPrice()!=null){
+                BigDecimal saleVolume = new BigDecimal(lawyerTaskInfo.getSalesVolume());
+                BigDecimal totalSale = saleVolume.multiply(lawyerTaskInfo.getCommodityPrice());
+                lawyerTaskInfo.setTotalSale(totalSale);
+            }
             lawyerTaskInfo.setShopName(item.getSeller_nick());
             lawyerTaskInfo.setProductLink(item.getDetail_url());
             lawyerTaskInfo.setTaskId(TASK_ID);

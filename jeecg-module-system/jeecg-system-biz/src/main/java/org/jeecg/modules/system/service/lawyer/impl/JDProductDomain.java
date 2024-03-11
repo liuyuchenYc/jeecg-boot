@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +51,12 @@ public class JDProductDomain implements LawyerProductStrategy<JdProductResultVo>
 
     @Override
     public void doItemSearch(String keywords,String taskId) {
+        Random random = new Random();
+        int rMin = 400; // 区间最小值
+        int rMax = 500; // 区间最大值
+        // 设置目标总计
+        int targetSum  = rMin + random.nextInt(rMax - rMin + 1);
+        int count = 15;
         keyword = keywords;
         url = "https://api-gw.onebound.cn/jd/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         TASK_ID = taskId;
@@ -81,25 +88,22 @@ public class JDProductDomain implements LawyerProductStrategy<JdProductResultVo>
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = 2; i < totalPages ; i++) {
+                count+=15;
+                if (count > targetSum){
+                    break;
+                }
                 String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
                 if(isReady.equals("2")){
                     break;
                 }
                 int finalI = i;
                 log.info("第{}页请求",i);
-                Runnable task = () -> {
-                    try {
-                        fetchDataFromRemote(finalI);
-                        // 模拟任务执行时间
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        log.error(e.getMessage());
-                    }
-                };
-                executorService.scheduleWithFixedDelay(task, 1, 3, TimeUnit.SECONDS);
-//                CompletableFuture.runAsync(()->{
-//                    fetchDataFromRemote(finalI);
-//                });
+                fetchDataFromRemote(finalI);
+                int min = 3000; // 区间最小值
+                int max = 10000; // 区间最大值
+                // 生成指定范围内的随机整数
+                int randomNum = min + random.nextInt(max - min + 1);
+                Thread.sleep(randomNum);
             }
         } catch (Exception e) {
             log.error("JDProductDomain 调用异常{}", e.getMessage());
@@ -175,6 +179,11 @@ public class JDProductDomain implements LawyerProductStrategy<JdProductResultVo>
             lawyerTaskInfo.setSalesVolume((Integer) item.getSales());
             if(!StringUtils.isEmpty(item.getArea())){
                 lawyerTaskInfo.setArea(item.getArea());
+            }
+            if(lawyerTaskInfo.getSalesVolume() != null && lawyerTaskInfo.getCommodityPrice()!=null){
+                BigDecimal saleVolume = new BigDecimal(lawyerTaskInfo.getSalesVolume());
+                BigDecimal totalSale = saleVolume.multiply(lawyerTaskInfo.getCommodityPrice());
+                lawyerTaskInfo.setTotalSale(totalSale);
             }
             lawyerTaskInfo.setShopName(item.getSeller());
             lawyerTaskInfo.setTaskId(TASK_ID);

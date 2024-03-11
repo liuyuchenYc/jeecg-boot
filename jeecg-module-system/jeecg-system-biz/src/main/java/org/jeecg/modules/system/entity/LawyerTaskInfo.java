@@ -1,6 +1,7 @@
 package org.jeecg.modules.system.entity;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -106,4 +107,8 @@ public class LawyerTaskInfo implements Serializable {
 
     @TableField(exist = false)
     private String searchDomain;
+    @Excel(name = "销售额", width = 15)
+    private BigDecimal totalSale;
+    @Excel(name = "是否标记", width = 15)
+    private Integer marks;
 }

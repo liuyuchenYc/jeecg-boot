@@ -76,4 +76,6 @@ public class LawyerTask implements Serializable {
 
     @TableField(exist = false)
     private IPage<LawyerTaskInfo> pageInfoList ;
+    
+    private String createUser;
 }
