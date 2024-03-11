@@ -86,6 +86,10 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
             convertData(resultVo);
             totalPages = resultVo.getItems().getPagecount();
             for (int i = currentPage; i < totalPages ; i++) {
+                count+=15;
+                if (count > targetSum){
+                    break;
+                }
                 String isReady =  redisTemplate.opsForValue().get("lawyer_task:"+taskId);
                 if(isReady.equals("2")){
                     break;
@@ -93,6 +97,11 @@ public class KSProductDomain implements LawyerProductStrategy<KSProductResultVo>
                 int finalI = i;
                 log.info("第{}页请求",i);
                 fetchDataFromRemote(finalI);
+                int min = 3000; // 区间最小值
+                int max = 10000; // 区间最大值
+                // 生成指定范围内的随机整数
+                int randomNum = min + random.nextInt(max - min + 1);
+                Thread.sleep(randomNum);
 
 //                Runnable task = () -> {
 //                    try {
