@@ -76,7 +76,7 @@ public class JeecgController<T, S extends IService<T>> {
         return mv;
     }
 
-    protected ModelAndView newExportXls(HttpServletRequest request, T object, Class<T> clazz, String title, LambdaQueryWrapper queryWrapper) {
+    protected ModelAndView newExportXls(HttpServletRequest request,Class<T> clazz, String title, LambdaQueryWrapper queryWrapper,Integer type) {
         LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         // 过滤选中数据
         String selections = request.getParameter("selections");
@@ -91,6 +91,11 @@ public class JeecgController<T, S extends IService<T>> {
         ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
         //此处设置的filename无效 ,前端会重更新设置一下
         mv.addObject(NormalExcelConstants.FILE_NAME, title);
+        if(type == 1){
+            mv.addObject(NormalExcelConstants.EXPORT_FIELDS,"id,productTitle,productSummary,productCover,shopName,commodityPrice,salesVolume,taskId,productLink,channel,totalSale,marks");
+        } else{
+            mv.addObject(NormalExcelConstants.EXPORT_FIELDS,"id,taskId,channel,content,contentId,contentAuthor,contentAuthorId,area,contentUrl,userSign,marks");
+        }
         mv.addObject(NormalExcelConstants.CLASS, clazz);
         //update-begin--Author:liusq  Date:20210126 for：图片导出报错，ImageBasePath未设置--------------------
         ExportParams exportParams=new ExportParams(title + "报表", "导出人:" + sysUser.getRealname(), title);

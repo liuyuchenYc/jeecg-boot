@@ -7,10 +7,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.system.entity.LawyerTaskChannel;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
+import org.jeecg.modules.system.entity.LawyerTaskInfoV2;
 import org.jeecg.modules.system.mapper.LawyerTaskChannelMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -18,7 +22,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.system.base.controller.JeecgController;
+import org.jeecgframework.poi.excel.def.NormalExcelConstants;
+import org.jeecgframework.poi.excel.entity.ExportParams;
+import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -189,9 +197,15 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
 			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
 		}
-        return super.newExportXls(request, lawyerTaskInfo, LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper);
-    }
+		LawyerTaskInfoV2 infoV2 = new LawyerTaskInfoV2();
+		BeanUtils.copyProperties(lawyerTaskInfo,infoV2);
+		if(lawyerTaskInfo.getSearchDomain().equals("2")){
+			return super.newExportXls(request,  LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper,1);
+		}else{
+			return super.newExportXls(request,  LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper,2);
+		}
 
+    }
     /**
       * 通过excel导入数据
     *

@@ -25,7 +25,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ApiModel(value="lawyer_task_info对象", description="lawyer_task_info")
-public class LawyerTaskInfo implements Serializable {
+public class LawyerTaskInfo extends LawyerTaskInfoV2 implements Serializable {
     private static final long serialVersionUID = 1L;
 
 	/**线索id*/
@@ -41,7 +41,7 @@ public class LawyerTaskInfo implements Serializable {
     @ApiModelProperty(value = "商品描述")
     private java.lang.String productSummary;
 	/**商品封面*/
-	@Excel(name = "商品封面", width = 15)
+	@Excel(name = "商品封面", width = 15 ,type = 2)
     @ApiModelProperty(value = "商品封面")
     private java.lang.String productCover;
 	/**主体类型*/
@@ -109,6 +109,6 @@ public class LawyerTaskInfo implements Serializable {
     private String searchDomain;
     @Excel(name = "销售额", width = 15)
     private BigDecimal totalSale;
-    @Excel(name = "是否标记", width = 15)
+    @Excel(name = "是否标记", width = 15,replace={"是_1","否_0"})
     private Integer marks;
 }

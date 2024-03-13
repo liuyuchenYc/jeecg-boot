@@ -24,6 +24,16 @@ public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
 	@Select("select role_code from sys_role where id in (select role_id from sys_user_role where user_id = (select id from sys_user where username=#{username}))")
 	List<String> getRoleByUserName(@Param("username") String username);
 
+
+	/**
+	 * 通过用户账号查询角色集合
+	 * @param username 用户账号名称
+	 * @return List<String>
+	 */
+	@Select("select role_name from sys_role where id in (select role_id from sys_user_role where user_id = (select id from sys_user where username=#{username}))")
+	List<String> getRoleNameByUserName(@Param("username") String username);
+
+
 	/**
      * 通过用户账号查询角色Id集合
      * @param username 用户账号名称

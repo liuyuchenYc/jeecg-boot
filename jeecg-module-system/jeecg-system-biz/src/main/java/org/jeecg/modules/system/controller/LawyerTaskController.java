@@ -1,6 +1,7 @@
 package org.jeecg.modules.system.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,6 +15,7 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.modules.system.entity.LawyerTask;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
+import org.jeecg.modules.system.mapper.SysUserRoleMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import org.jeecg.modules.system.service.ILawyerTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @Description: lawyer_task
@@ -41,6 +44,8 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
     private ILawyerTaskInfoService taskInfoService;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
 
     /**
      * 分页列表查询
@@ -59,7 +64,12 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
                                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                    HttpServletRequest req) {
         LoginUser loginUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        lawyerTask.setCreateUser(loginUser.getUsername());
+        List<String> roleNameList = sysUserRoleMapper.getRoleNameByUserName(loginUser.getUsername());
+        log.info("当前登陆人角色为{}",JSONObject.toJSONString(roleNameList));
+        String roleName = roleNameList.get(0);
+        if(!roleName.equals("超级管理员") && !roleName.equals("管理员")){
+            lawyerTask.setCreateUser(loginUser.getUsername());
+        }
         QueryWrapper<LawyerTask> queryWrapper = QueryGenerator.initQueryWrapper(lawyerTask, req.getParameterMap());
         Page<LawyerTask> page = new Page<LawyerTask>(pageNo, pageSize);
         IPage<LawyerTask> pageList = lawyerTaskService.page(page, queryWrapper);
@@ -78,6 +88,19 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
     public Result<String> add(@RequestBody LawyerTask lawyerTask) {
         LoginUser loginUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         lawyerTask.setCreateUser(loginUser.getUsername());
+        List<String> roleNameList = sysUserRoleMapper.getRoleNameByUserName(loginUser.getUsername());
+        log.info("当前登陆人角色为{}",JSONObject.toJSONString(roleNameList));
+        String roleName = roleNameList.get(0);
+        LambdaQueryWrapper<LawyerTask> queryWrapper =  new LambdaQueryWrapper();
+        queryWrapper.eq(LawyerTask::getStatus,0);
+        Long num = lawyerTaskService.count(queryWrapper);
+        if(roleName.equals("基础版" )&& num.intValue()>= 1){
+            return Result.error("当前存在进行中任务！");
+        }else if(roleName.equals("标准版") && num.intValue()>= 2){
+            return Result.error("当前进行中任务,超过账号上限！");
+        }if(roleName.equals("升级版") && num.intValue()>= 3){
+            return Result.error("当前进行中任务,超过账号上限！");
+        }
         lawyerTaskService.save(lawyerTask);
         String id = lawyerTask.getId();
         log.info("lawyer_task 保存后Id为{}", JSONObject.toJSONString(lawyerTask));
