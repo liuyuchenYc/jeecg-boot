@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.jeecg.common.api.vo.Result;
@@ -21,10 +22,9 @@ import org.jeecg.common.util.*;
 import org.jeecg.common.util.encryption.EncryptedString;
 import org.jeecg.config.JeecgBaseConfig;
 import org.jeecg.modules.base.service.BaseCommonService;
-import org.jeecg.modules.system.entity.SysDepart;
-import org.jeecg.modules.system.entity.SysRoleIndex;
-import org.jeecg.modules.system.entity.SysTenant;
-import org.jeecg.modules.system.entity.SysUser;
+import org.jeecg.modules.system.entity.*;
+import org.jeecg.modules.system.mapper.SysRoleMapper;
+import org.jeecg.modules.system.mapper.SysUserRoleMapper;
 import org.jeecg.modules.system.model.SysLoginModel;
 import org.jeecg.modules.system.service.*;
 import org.jeecg.modules.system.service.impl.SysBaseApiImpl;
@@ -32,6 +32,7 @@ import org.jeecg.modules.system.util.RandImageUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -67,6 +68,8 @@ public class LoginController {
 	private BaseCommonService baseCommonService;
 	@Autowired
 	private JeecgBaseConfig jeecgBaseConfig;
+	@Autowired
+	private SysUserRoleMapper sysUserRoleMapper;
 
 	private final String BASE_CHECK_CODES = "qwertyuiplkjhgfdsazxcvbnmQWERTYUPLKJHGFDSAZXCVBNM1234567890";
 
@@ -108,7 +111,7 @@ public class LoginController {
 			return result;
 		}
 		//update-end-author:taoyan date:20190828 for:校验验证码
-		
+
 		//1. 校验用户是否有效
 		//update-begin-author:wangshuai date:20200601 for: 登录代码验证用户是否注销bug，if条件永远为false
 		LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
@@ -130,7 +133,7 @@ public class LoginController {
 			result.error500("用户名或密码错误");
 			return result;
 		}
-				
+
 		//用户登录信息
 		userInfo(sysUser, result, request);
 		//update-begin--Author:liusq  Date:20210126  for：登录成功，删除redis中的验证码
@@ -156,7 +159,15 @@ public class LoginController {
 			// 根据用户名查询用户信息
 			SysUser sysUser = sysUserService.getUserByName(username);
 			JSONObject obj=new JSONObject();
-
+			List<String> roleNameList = sysUserRoleMapper.getRoleNameByUserName(sysUser.getUsername());
+			List<String> roleIdList = sysUserRoleMapper.getRoleIdByUserName(sysUser.getUsername());
+			log.info("当前登陆人角色为{}",JSONObject.toJSONString(roleNameList));
+			if(!CollectionUtils.isEmpty(roleNameList)){
+				String roleName = roleNameList.get(0);
+				String roleIds = roleIdList.get(0);
+				sysUser.setRoleName(roleName);
+				sysUser.setRoleId(roleIds);
+			}
 			//update-begin---author:scott ---date:2022-06-20  for：vue3前端，支持自定义首页-----------
 			String vue3Version = request.getHeader(CommonConstant.VERSION);
 			//update-begin---author:liusq ---date:2022-06-29  for：接口返回值修改，同步修改这里的判断逻辑-----------
@@ -170,17 +181,17 @@ public class LoginController {
 			}
 			//update-begin---author:liusq ---date:2022-06-29  for：接口返回值修改，同步修改这里的判断逻辑-----------
 			//update-end---author:scott ---date::2022-06-20  for：vue3前端，支持自定义首页--------------
-			
+
 			obj.put("userInfo",sysUser);
 			obj.put("sysAllDictItems", sysDictService.queryAllDictItems());
-			
+
 			result.setResult(obj);
 			result.success("");
 		}
 		return result;
 
 	}
-	
+
 	/**
 	 * 退出登录
 	 * @param request
@@ -214,7 +225,7 @@ public class LoginController {
 	    	return Result.error("Token无效!");
 	    }
 	}
-	
+
 	/**
 	 * 获取访问量
 	 * @return
@@ -245,7 +256,7 @@ public class LoginController {
 		result.success("登录成功");
 		return result;
 	}
-	
+
 	/**
 	 * 获取访问量
 	 * @return
@@ -266,8 +277,8 @@ public class LoginController {
 		result.setResult(oConvertUtils.toLowerCasePageList(list));
 		return result;
 	}
-	
-	
+
+
 	/**
 	 * 登陆成功选择用户当前部门
 	 * @param user
@@ -281,7 +292,7 @@ public class LoginController {
 			LoginUser sysUser = (LoginUser)SecurityUtils.getSubject().getPrincipal();
 			username = sysUser.getUsername();
 		}
-		
+
 		//获取登录部门
 		String orgCode= user.getOrgCode();
 		//获取登录租户
@@ -297,7 +308,7 @@ public class LoginController {
 
 	/**
 	 * 短信登录接口
-	 * 
+	 *
 	 * @param jsonObject
 	 * @return
 	 */
@@ -313,12 +324,12 @@ public class LoginController {
 			result.setSuccess(false);
 			return result;
 		}
-		
+
 		//update-begin-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
 		String redisKey = CommonConstant.PHONE_REDIS_KEY_PRE+mobile;
 		Object object = redisUtil.get(redisKey);
 		//update-end-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
-		
+
 		if (object != null) {
 			result.setMessage("验证码10分钟内，仍然有效！");
 			result.setSuccess(false);
@@ -352,7 +363,7 @@ public class LoginController {
 					}
 					return result;
 				}
-				
+
 				/**
 				 * smsmode 短信模板方式  0 .登录模板、1.注册模板、2.忘记密码模板
 				 */
@@ -370,12 +381,12 @@ public class LoginController {
 				result.setSuccess(false);
 				return result;
 			}
-			
+
 			//update-begin-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
 			//验证码10分钟内有效
 			redisUtil.set(redisKey, captcha, 600);
 			//update-end-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
-			
+
 			//update-begin--Author:scott  Date:20190812 for：issues#391
 			//result.setResult(captcha);
 			//update-end--Author:scott  Date:20190812 for：issues#391
@@ -388,11 +399,11 @@ public class LoginController {
 		}
 		return result;
 	}
-	
+
 
 	/**
 	 * 手机号登录接口
-	 * 
+	 *
 	 * @param jsonObject
 	 * @return
 	 */
@@ -412,7 +423,7 @@ public class LoginController {
 		if(!result.isSuccess()) {
 			return result;
 		}
-		
+
 		String smscode = jsonObject.getString("captcha");
 
 		//update-begin-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
@@ -464,7 +475,7 @@ public class LoginController {
 
 		//3.设置登录用户信息
 		obj.put("userInfo", sysUser);
-		
+
 		//4.设置登录部门
 		List<SysDepart> departs = sysDepartService.queryUserDeparts(sysUser.getId());
 		obj.put("departs", departs);
@@ -491,7 +502,7 @@ public class LoginController {
 			obj.put("sysAllDictItems", sysDictService.queryAllDictItems());
 		}
 		//end-begin---author:scott ---date:2024-01-05  for：【QQYUN-7802】前端在登录时加载了两次数据字典，建议优化下，避免数据字典太多时可能产生的性能问题 #956---
-		
+
 		result.setResult(obj);
 		result.success("登录成功");
 		return result;
@@ -525,13 +536,13 @@ public class LoginController {
 			String code = RandomUtil.randomString(BASE_CHECK_CODES,4);
 			//存到redis中
 			String lowerCaseCode = code.toLowerCase();
-			
+
 			//update-begin-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
 			// 加入密钥作为混淆，避免简单的拼接，被外部利用，用户自定义该密钥即可
 			String origin = lowerCaseCode+key+jeecgBaseConfig.getSignatureSecret();
 			String realKey = Md5Util.md5Encode(origin, "utf-8");
 			//update-end-author:taoyan date:2022-9-13 for: VUEN-2245 【漏洞】发现新漏洞待处理20220906
-            
+
 			redisUtil.set(realKey, lowerCaseCode, 60);
 			log.info("获取验证码，Redis key = {}，checkCode = {}", realKey, code);
 			//返回前端
@@ -556,7 +567,7 @@ public class LoginController {
 		sysPermissionService.switchVue3Menu();
 		return res;
 	}
-	
+
 	/**
 	 * app登录
 	 * @param sysLoginModel
@@ -569,7 +580,7 @@ public class LoginController {
 		String username = sysLoginModel.getUsername();
 		String password = sysLoginModel.getPassword();
 		JSONObject obj = new JSONObject();
-		
+
 		//update-begin-author:taoyan date:2022-11-7 for: issues/4109 平台用户登录失败锁定用户
 		if(isLoginFailOvertimes(username)){
 			return result.error500("该用户登录失败次数过多，请于10分钟后再次登录！");
@@ -581,7 +592,7 @@ public class LoginController {
 		if(!result.isSuccess()) {
 			return result;
 		}
-		
+
 		//2. 校验用户名或密码是否正确
 		String userpassword = PasswordUtil.encrypt(username, password, sysUser.getSalt());
 		String syspassword = sysUser.getPassword();
@@ -592,7 +603,7 @@ public class LoginController {
 			result.error500("用户名或密码错误");
 			return result;
 		}
-		
+
 		//3.设置登录部门
 		String orgCode = sysUser.getOrgCode();
 		if(oConvertUtils.isEmpty(orgCode)) {
@@ -618,7 +629,7 @@ public class LoginController {
 
 		//5. 设置登录用户信息
 		obj.put("userInfo", sysUser);
-		
+
 		//6. 生成token
 		String token = JwtUtil.sign(username, syspassword);
 		// 设置超时时间
