@@ -2,7 +2,6 @@ package org.jeecg.modules.system.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -25,7 +24,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ApiModel(value="lawyer_task_info对象", description="lawyer_task_info")
-public class LawyerTaskInfo extends LawyerTaskInfoV2 implements Serializable {
+public class LawyerTaskInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
 	/**线索id*/
