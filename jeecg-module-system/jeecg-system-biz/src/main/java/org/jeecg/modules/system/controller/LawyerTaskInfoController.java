@@ -1,38 +1,31 @@
 package org.jeecg.modules.system.controller;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import org.apache.shiro.SecurityUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.api.vo.Result;
-import org.jeecg.common.system.query.QueryGenerator;
-import org.jeecg.common.system.vo.LoginUser;
-import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.common.aspect.annotation.AutoLog;
+import org.jeecg.common.system.base.controller.JeecgController;
 import org.jeecg.modules.system.entity.LawyerTaskChannel;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
-import org.jeecg.modules.system.entity.LawyerTaskInfoV2;
 import org.jeecg.modules.system.mapper.LawyerTaskChannelMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import lombok.extern.slf4j.Slf4j;
-import org.jeecg.common.system.base.controller.JeecgController;
-import org.jeecgframework.poi.excel.def.NormalExcelConstants;
-import org.jeecgframework.poi.excel.entity.ExportParams;
-import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.jeecg.common.aspect.annotation.AutoLog;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
  /**
  * @Description: lawyer_task_info
@@ -197,8 +190,6 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
 			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
 		}
-		LawyerTaskInfoV2 infoV2 = new LawyerTaskInfoV2();
-		BeanUtils.copyProperties(lawyerTaskInfo,infoV2);
 		if(lawyerTaskInfo.getSearchDomain().equals("2")){
 			return super.newExportXls(request,  LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper,1);
 		}else{
