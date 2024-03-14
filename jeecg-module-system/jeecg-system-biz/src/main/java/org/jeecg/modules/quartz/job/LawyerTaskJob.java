@@ -84,7 +84,7 @@ public class LawyerTaskJob implements Job {
         lambdaQueryWrapper.eq(LawyerTask::getYn, 1);
         List<LawyerTask> listJob = taskService.list(lambdaQueryWrapper);
         listJob.stream().forEach(item->{
-            Boolean result = redisTemplate.opsForValue().setIfAbsent(redisKey + item.getId(), item.getId(), Duration.ofMinutes(30));
+            Boolean result = redisTemplate.opsForValue().setIfAbsent(redisKey + item.getId(), item.getId(), Duration.ofHours(12));
             if (!result) {
                 return;
             }
@@ -101,11 +101,13 @@ public class LawyerTaskJob implements Job {
             });
             Random rand = new Random();
             // 2小时到4小时的毫秒范围
+            long currentMillis = System.currentTimeMillis();
             long minMillis = 2L * 60 * 60 * 1000; // 2小时
             long maxMillis = 4L * 60 * 60 * 1000; // 4小时
             // 生成随机毫秒数
             long randomMillis = minMillis + (long) (rand.nextDouble() * (maxMillis - minMillis));
-            delayedQueueService.addTask(item.getId(),randomMillis);
+            long score = currentMillis + randomMillis;
+            delayedQueueService.addTask(item.getId(),score);
         });
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("LawyerTaskJob Job !   时间:" + DateUtils.now(), this.parameter));

@@ -1,10 +1,10 @@
 package org.jeecg.modules.system.service.lawyer;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.system.entity.LawyerTask;
 import org.jeecg.modules.system.mapper.LawyerTaskMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
-import org.jeecg.modules.system.service.ILawyerTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -50,7 +50,6 @@ public class DelayedQueueService {
                 // 获取已经到达执行时间的任务
                 Set<ZSetOperations.TypedTuple<Object>> tasks = redisTemplate.opsForZSet().rangeByScoreWithScores(
                         DELAYED_QUEUE_KEY, 0, now, 0, 1);
-
                 // 遍历并执行任务
                 for (ZSetOperations.TypedTuple<Object> task : tasks) {
                     String taskId = (String) task.getValue();
@@ -59,8 +58,7 @@ public class DelayedQueueService {
                     // 执行任务逻辑
                     executeTask(taskId);
                 }
-
-                // 休眠一段时间再次轮询
+                    // 休眠一段时间再次轮询
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -71,7 +69,9 @@ public class DelayedQueueService {
     // 执行任务的逻辑
     private void executeTask(String taskId) {
         log.info("任务Id {},已完成",taskId);
-        LawyerTask lawyearTask =  lawyerTaskMapper.selectById(taskId);
+        LambdaQueryWrapper<LawyerTask> lambdaQueryWrapper = new LambdaQueryWrapper();
+        lambdaQueryWrapper.eq(LawyerTask::getId,taskId);
+        LawyerTask lawyearTask =  lawyerTaskMapper.selectOne(lambdaQueryWrapper);
         if(lawyearTask != null && lawyearTask.getStatus() != 2){
             LawyerTask task = new LawyerTask();
             task.setFinishTime(new Date());

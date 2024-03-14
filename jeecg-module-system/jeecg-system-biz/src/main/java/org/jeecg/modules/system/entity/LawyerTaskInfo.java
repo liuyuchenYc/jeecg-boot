@@ -40,7 +40,7 @@ public class LawyerTaskInfo implements Serializable {
     @ApiModelProperty(value = "商品描述")
     private java.lang.String productSummary;
 	/**商品封面*/
-	@Excel(name = "商品封面", width = 15 ,type = 2)
+	@Excel(name = "商品封面", width = 15 )
     @ApiModelProperty(value = "商品封面")
     private java.lang.String productCover;
 	/**主体类型*/

@@ -93,6 +93,7 @@ public class LawyerTaskController extends JeecgController<LawyerTask, ILawyerTas
         String roleName = roleNameList.get(0);
         LambdaQueryWrapper<LawyerTask> queryWrapper =  new LambdaQueryWrapper();
         queryWrapper.eq(LawyerTask::getStatus,0);
+        queryWrapper.eq(LawyerTask::getCreateUser,loginUser.getUsername());
         Long num = lawyerTaskService.count(queryWrapper);
         if(roleName.equals("基础版" )&& num.intValue()>= 1){
             return Result.error("当前存在进行中任务！");
