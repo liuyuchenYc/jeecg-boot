@@ -1,5 +1,6 @@
 package org.jeecg.modules.system.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -7,20 +8,26 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.common.system.base.controller.JeecgController;
+import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.modules.system.entity.LawyerTask;
 import org.jeecg.modules.system.entity.LawyerTaskChannel;
 import org.jeecg.modules.system.entity.LawyerTaskInfo;
 import org.jeecg.modules.system.mapper.LawyerTaskChannelMapper;
+import org.jeecg.modules.system.mapper.LawyerTaskMapper;
 import org.jeecg.modules.system.service.ILawyerTaskInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +50,9 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 
 	@Resource
 	private LawyerTaskChannelMapper taskChannelMapper;
+
+	@Autowired
+	private LawyerTaskMapper lawyerTaskMapper;
 	/**
 	 * 分页列表查询
 	 *
@@ -63,7 +73,7 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 		LambdaQueryWrapper<LawyerTaskInfo> infoQueryWrapper = new LambdaQueryWrapper<>();
 		infoQueryWrapper.eq(LawyerTaskInfo::getTaskId,lawyerTaskInfo.getTaskId());
 		List<String> ids = new ArrayList<>();
-		if(lawyerTaskInfo.getChannel() != null){
+		if(!StringUtils.isEmpty(lawyerTaskInfo.getChannel())){
 			LambdaQueryWrapper<LawyerTaskChannel> queryWrapper = new LambdaQueryWrapper<>();
 			queryWrapper.eq(LawyerTaskChannel::getChannelType,lawyerTaskInfo.getSearchDomain());
 			queryWrapper.eq(LawyerTaskChannel::getYn,1);
@@ -79,12 +89,44 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductSummary())){
 			infoQueryWrapper.like(LawyerTaskInfo::getProductSummary,lawyerTaskInfo.getProductSummary());
 		}
+		if(lawyerTaskInfo.getMarks()!=null) {
+			infoQueryWrapper.eq(LawyerTaskInfo::getMarks, lawyerTaskInfo.getMarks());
+		}
 		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
 			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
 		}
 		Page<LawyerTaskInfo> page = new Page<LawyerTaskInfo>(pageNo, pageSize);
-		log.info("req{}",infoQueryWrapper);
+		log.info("req{}", JSONObject.toJSONString(infoQueryWrapper.getSqlSelect()));
 		IPage<LawyerTaskInfo> pageList = lawyerTaskInfoService.page(page,infoQueryWrapper );
+		List<LawyerTaskInfo> pageRecord = pageList.getRecords();
+		String searchDomain = "";
+		if(!CollectionUtils.isEmpty(pageRecord)){
+			LawyerTaskInfo info = pageRecord.get(0);
+			String taskId = info.getTaskId();
+			LambdaQueryWrapper<LawyerTask> taskLambdaQueryWrapper = new LambdaQueryWrapper<>();
+			taskLambdaQueryWrapper.eq(LawyerTask::getId,taskId);
+			LawyerTask lawyerTask = lawyerTaskMapper.selectOne(taskLambdaQueryWrapper);
+			searchDomain = lawyerTask.getSearchDomain();
+		}
+		if(!StringUtils.isEmpty(searchDomain) && searchDomain.equals("2")){
+			List<LawyerTaskInfo> list = pageList.getRecords();
+			list.stream().forEach(item->{
+				if(item.getSalesVolume() == null){
+					BigDecimal productPrice = item.getCommodityPrice() == null ? BigDecimal.ZERO :item.getCommodityPrice();
+					BigDecimal saleVolume = item.getSalesVolume() == null ? BigDecimal.ZERO :new BigDecimal(item.getSalesVolume());
+					BigDecimal totalPrice = productPrice.multiply(saleVolume);
+					item.setTotalSale(totalPrice);
+				}else if(item.getCommodityPrice() != null && item.getSalesVolume() != null){
+					BigDecimal productPrice = item.getCommodityPrice() == null ? BigDecimal.ZERO :item.getCommodityPrice();
+					BigDecimal saleVolume = item.getSalesVolume() == null ? BigDecimal.ZERO :new BigDecimal(item.getSalesVolume());
+					BigDecimal totalPrice = productPrice.multiply(saleVolume);
+					item.setTotalSale(totalPrice);
+				}else{
+					item.setTotalSale(BigDecimal.ZERO);
+				}
+			});
+			pageList.setRecords(list);
+		}
 		return Result.OK(pageList);
 	}
 
@@ -170,6 +212,8 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, LawyerTaskInfo lawyerTaskInfo) {
 		LambdaQueryWrapper<LawyerTaskInfo> infoQueryWrapper = new LambdaQueryWrapper<>();
+//		LoginUser loginUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+		infoQueryWrapper.eq(LawyerTaskInfo::getTaskId,lawyerTaskInfo.getTaskId());
 		List<String> ids = new ArrayList<>();
 		if(lawyerTaskInfo.getChannel() != null){
 			LambdaQueryWrapper<LawyerTaskChannel> queryWrapper = new LambdaQueryWrapper<>();
@@ -190,10 +234,13 @@ public class LawyerTaskInfoController extends JeecgController<LawyerTaskInfo, IL
 		if(!StringUtils.isEmpty(lawyerTaskInfo.getProductTitle())) {
 			infoQueryWrapper.like(LawyerTaskInfo::getProductTitle, lawyerTaskInfo.getProductTitle());
 		}
+		if(lawyerTaskInfo.getMarks()!=null) {
+			infoQueryWrapper.eq(LawyerTaskInfo::getMarks, lawyerTaskInfo.getMarks());
+		}
 		if(lawyerTaskInfo.getSearchDomain().equals("2")){
-			return super.newExportXls(request,  LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper,1);
+			return super.newExportXls(request,  LawyerTaskInfo.class, "线索详情报表",infoQueryWrapper,1);
 		}else{
-			return super.newExportXls(request,  LawyerTaskInfo.class, "lawyer_task_info",infoQueryWrapper,2);
+			return super.newExportXls(request,  LawyerTaskInfo.class, "线索详情报表",infoQueryWrapper,2);
 		}
 
     }
