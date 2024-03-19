@@ -184,6 +184,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		Page<SysUser> page = new Page<SysUser>(pageNo, pageSize);
 		IPage<SysUser> pageList = this.page(page, queryWrapper);
 		List<String> uIds = pageList.getRecords().stream().map(SysUser::getId).collect(Collectors.toList());
+		if(CollectionUtils.isEmpty(uIds)){
+			return result;
+		}
 		LambdaQueryWrapper<SysRole> roleLambdaQueryWrapper = new LambdaQueryWrapper<>();
 		roleLambdaQueryWrapper.in(SysRole::getUserId,uIds);
 		//userId
