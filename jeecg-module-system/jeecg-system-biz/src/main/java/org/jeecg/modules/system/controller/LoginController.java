@@ -169,16 +169,18 @@ public class LoginController {
 				sysUser.setRoleId(roleIds);
 			}
 			//update-begin---author:scott ---date:2022-06-20  for：vue3前端，支持自定义首页-----------
-			String vue3Version = request.getHeader(CommonConstant.VERSION);
+//			String vue3Version = request.getHeader(CommonConstant.VERSION);
+			sysUser.setHomePath("/lv_monitor_task/list");
+
 			//update-begin---author:liusq ---date:2022-06-29  for：接口返回值修改，同步修改这里的判断逻辑-----------
-			SysRoleIndex roleIndex = sysUserService.getDynamicIndexByUserRole(username, vue3Version);
-			if (oConvertUtils.isNotEmpty(vue3Version) && roleIndex != null && oConvertUtils.isNotEmpty(roleIndex.getUrl())) {
-				String homePath = roleIndex.getUrl();
-				if (!homePath.startsWith(SymbolConstant.SINGLE_SLASH)) {
-					homePath = SymbolConstant.SINGLE_SLASH + homePath;
-				}
-				sysUser.setHomePath(homePath);
-			}
+//			SysRoleIndex roleIndex = sysUserService.getDynamicIndexByUserRole(username, vue3Version);
+//			if (oConvertUtils.isNotEmpty(vue3Version) && roleIndex != null && oConvertUtils.isNotEmpty(roleIndex.getUrl())) {
+//				String homePath = roleIndex.getUrl();
+//				if (!homePath.startsWith(SymbolConstant.SINGLE_SLASH)) {
+//					homePath = SymbolConstant.SINGLE_SLASH + homePath;
+//				}
+////				sysUser.setHomePath("/lv_monitor_task/list");
+//			}
 			//update-begin---author:liusq ---date:2022-06-29  for：接口返回值修改，同步修改这里的判断逻辑-----------
 			//update-end---author:scott ---date::2022-06-20  for：vue3前端，支持自定义首页--------------
 

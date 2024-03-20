@@ -76,7 +76,7 @@ public class LawyerTaskFinishJob implements Job {
             queryWrapper.eq(LawyerTask::getStatus, 0);
             queryWrapper.eq(LawyerTask::getCreateUser, item.getCreateUser());
             if (roleName.equals("管理员" ) || roleName.equals("超级管理员")) {
-                return;
+                calendar.add(Calendar.HOUR_OF_DAY, -1);
             }
             if (roleName.equals("基础版")) {
                 calendar.add(Calendar.HOUR_OF_DAY, -4);
