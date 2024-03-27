@@ -57,7 +57,7 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
         // 初始化当前总和和计数器
         keyword = keywords;
         url = "https://api-gw.onebound.cn/douyin/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
-        log.info("抖音: 请求参数为",url);
+        log.info("抖音: 请求参数为{}",url);
 
         TASK_ID = taskId;
         int totalPages = 1; // 总页数
@@ -123,7 +123,7 @@ public class DyProductDomain implements LawyerProductStrategy<DYProductResultVo>
         log.info("dy: 页码为{},开始跑数据",page);
 
         url = "https://api-gw.onebound.cn/douyin/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + page + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
-        log.info("抖音: 请求参数为",url);
+        log.info("抖音: 请求参数为{}",url);
 
         boolean state = true;
         try {

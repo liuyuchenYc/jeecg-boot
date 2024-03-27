@@ -50,7 +50,7 @@ public class T1688ProductDomain implements LawyerProductStrategy<T1688ProductRes
         int count = 15;
         keyword = keywords;
         url = "https://api-gw.onebound.cn/1688/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + 1 + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
-        log.info("1688: 请求参数为",url);
+        log.info("1688: 请求参数为{}",url);
 
         TASK_ID = taskId;
         int totalPages = 1; // 总页数
@@ -115,7 +115,7 @@ public class T1688ProductDomain implements LawyerProductStrategy<T1688ProductRes
         log.info("T1688: 页码为{},开始跑数据",page);
         url = "https://api-gw.onebound.cn/1688/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + page + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
         boolean state = true;
-        log.info("1688: 请求参数为",url);
+        log.info("1688: 请求参数为{}",url);
 
         try {
             String remoteStr = HttpUtil.get(url);
