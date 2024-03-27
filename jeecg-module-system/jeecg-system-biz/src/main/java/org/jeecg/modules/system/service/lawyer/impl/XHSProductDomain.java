@@ -112,6 +112,8 @@ public class XHSProductDomain implements LawyerProductStrategy<XHSProductResultV
     public String fetchDataFromRemote(int page) {
         log.info("XHS: 页码为{},开始跑数据",page);
         url = "https://api-gw.onebound.cn/smallredbook/item_search/?key=" + OneBoundContants.key + "&secret=" + OneBoundContants.secret + "&q=" + keyword + "&start_price=0&end_price=0&page=" + page + "&cat=0&discount_only=&sort=&seller_info=no&nick=&seller_info=&nick=&ppath=&imgid=&filter=";
+        log.info("XHS: 请求参数为",url);
+
         boolean state = true;
         try {
             String remoteStr = HttpUtil.get(url);
